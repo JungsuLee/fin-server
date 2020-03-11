@@ -1,14 +1,18 @@
 from flask_restplus import Namespace, Resource, reqparse
+from flask import Response
 import pandas as pd
 import math
+import json
 
 api = Namespace('fin')
+
 
 @api.route('')
 class FinApi(Resource):
     def get(self):
-        return get_2020_fins()
-
+        fins = get_2020_fins()
+        res = json.dumps(fins, ensure_ascii=False).encode('utf8')
+        return Response(res, content_type='application/json; charset=utf-8')
 
 
 def get_2020_fins():
