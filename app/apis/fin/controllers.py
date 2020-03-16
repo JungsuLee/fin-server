@@ -1,47 +1,15 @@
-from flask_restplus import Namespace, Resource
 from app import db
-from ..models import Offering, Revenue, Expense
 import math
 import pandas as pd
-from .helpers import to_json_res
+from ...models import Offering, Revenue, Expense
+from ..helpers import to_json_res
 
 
-api = Namespace('fin')
-
-
-
-@api.route('')
-class FinApi(Resource):
-    def get(self):
-        fins = get_2020_fins()
-        return to_json_res(fins)
-
-
-@api.route('/fetch')
-class FetchFinDataApi(Resource):
-    def get(self):
-        return get_2020_fins()
-
-
-@api.route('/offerings')
-class OfferingsApi(Resource):
-    def get(self):
-        offerings = []
-        for offering in Offering.query.all():
-            offerings.append(offering_to_json(offering))
-        return to_json_res(offerings)
-        # return jsonify(offerings)
-
-
-def offering_to_json(offering):
-    return {
-        'date': str(offering.date),
-        'amount': offering.amount,
-        'description': offering.description,
-        'name': offering.name,
-        'category': offering.category,
-        'moneyType': offering.moneyType,
-    }
+def get_offerings():
+    offerings = []
+    for offering in Offering.query.all():
+        offerings.append(offering.to_json2())
+    return to_json_res(offerings)
 
 
 def get_2020_fins():

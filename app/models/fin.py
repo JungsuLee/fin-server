@@ -10,6 +10,16 @@ class Offering(db.Model):
     category = db.Column(db.String(15))
     moneyType = db.Column(db.String(15))
 
+    def to_json2(self):
+        return {
+            'date': str(self.date),
+            'amount': self.amount,
+            'description': self.description,
+            'name': self.name,
+            'category': self.category,
+            'moneyType': self.moneyType,
+        }
+
 
 class Revenue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -30,6 +40,3 @@ class Expense(db.Model):
     team = db.Column(db.String(15))
     status = db.Column(db.String(15))
     reference = db.Column(db.String(15))
-
-
-
