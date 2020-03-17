@@ -26,7 +26,7 @@ class Revenue(db.Model):
     date = db.Column(db.DateTime)
     amount = db.Column(db.Float)
     description = db.Column(db.Text)
-    ministry = db.Column(db.String(15))
+    # ministry = db.Column(db.String(15))
     team = db.Column(db.String(15))
     reference = db.Column(db.String(15))
 
@@ -36,7 +36,7 @@ class Expense(db.Model):
     date = db.Column(db.DateTime)
     amount = db.Column(db.Float)
     description = db.Column(db.Text)
-    ministry = db.Column(db.String(15))
+    # ministry = db.Column(db.String(15))
     team = db.Column(db.String(15))
     status = db.Column(db.String(15))
     reference = db.Column(db.String(15))

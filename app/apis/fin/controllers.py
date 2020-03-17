@@ -12,122 +12,98 @@ def get_offerings():
     return to_json_res(offerings)
 
 
-def get_2020_fins():
-    db.drop_all()
-    db.create_all()
-    db2020 = pd.read_excel('C:\\Users\\ljs96\\Dropbox\\재정 Finances\\2020 DB.xlsx')    
-    dateCol = db2020['Date']
-    nameCol = db2020['Name']
-    categoryCol = db2020['Category']
-    typeCol = db2020['Type']
-    amountCol = db2020['Amount']
-    revenueCol = db2020['Revenue']
-    expenseCol = db2020['Expense']
-    statusCol = db2020['Status']
-    ministryCol = db2020['Ministry']
-    teamCol = db2020['Team']
-    descriptionCol = db2020['Description']
-    typeCol = db2020['Type']
-    referenceCol = db2020['Reference']
-    
-    offerings = []
-    revenues = []
-    expenses = []
-    totalIncome = 0
-    totalExpense = 0
-    total십일조 = 0
-    total주일헌금 = 0
-    total감사헌금 = 0
-    for i in db2020.index:
-        date = dateCol[i]
-        amount = amountCol[i]
-        revenue = revenueCol[i]
-        expense = expenseCol[i]
-        status = statusCol[i]
-        category = categoryCol[i]
-        name = nameCol[i]
-        ministry = ministryCol[i]
-        team = teamCol[i]
-        description = descriptionCol[i]
-        moneyType = typeCol[i]
-        reference = referenceCol[i]
-        
-        if not math.isnan(amount):
-            totalIncome += amount
-            if category == '주일헌금':
-                total주일헌금 += amount
-            if category == '감사헌금':
-                total감사헌금 += amount
-            if category == '십일조':
-                total십일조 += amount
-            # offering = {
-            #     'date': date,
-            #     'amount': amount,
-            #     'description': description,
-            #     'name': name,
-            #     'category': category,
-            #     'moneyType': moneyType,
-            # }
-            db.session.add( 
-                Offering(
-                    date=date if not pd.isnull(date) else None,
-                    amount=amount,
-                    description=description,
-                    name=name,
-                    category=category,
-                    moneyType=moneyType, 
-                ))
-            # db.session.commit()
-            # offerings.append(offering)
-            # if pd.isnull(date):
-            #     print(name)
+def nan_value_to_empty_string(value):
+    return value if not pd.isnull(value) else ''
 
-        if not math.isnan(revenue):
-            totalIncome += revenue
-            # revenue = {
-            #     'date': date,
-            #     'amount': revenue,
-            #     'description': description,
-            #     'ministry': ministry,
-            #     'team': team,
-            #     'reference': reference,
-            # }
-            db.session.add(
-                Revenue(
-                    date=date,
-                    amount=revenue,
-                    description=description,
-                    ministry=ministry,
-                    team=team,
-                    reference=reference,
-                ))
-            # db.session.commit()
-            # revenues.append(revenue)
+
+def fetch_fin_data():
+    db_strings = [
+        'C:\\Users\\ljs96\\Dropbox\\재정 Finances\\2019 DB.xlsx',
+        'C:\\Users\\ljs96\\Dropbox\\재정 Finances\\2020 DB.xlsx',
+    ]
+
+    for db_string in db_strings:
+        fin_data = pd.read_excel(db_string)
+
+        dateCol = fin_data['Date']
+        nameCol = fin_data['Name']
+        categoryCol = fin_data['Category']
+        typeCol = fin_data['Type']
+        amountCol = fin_data['Amount']
+        revenueCol = fin_data['Revenue']
+        expenseCol = fin_data['Expense']
+        statusCol = fin_data['Status']
+        if '2020' in db_string:
+            teamCol = fin_data['Team']
+        else:
+            teamCol = fin_data['Department']
+        descriptionCol = fin_data['Description']
+        typeCol = fin_data['Type']
+        referenceCol = fin_data['Reference']
+        
+        totalIncome = 0
+        totalExpense = 0
+        total십일조 = 0
+        total주일헌금 = 0
+        total감사헌금 = 0
+
+        for i in fin_data.index:
+            date = dateCol[i]
+            amount = amountCol[i]
+            revenue = revenueCol[i]
+            expense = expenseCol[i]
+            status = statusCol[i]
+            category = categoryCol[i]
+            name = nameCol[i]
+            team = teamCol[i]
+            description = descriptionCol[i]
+            moneyType = typeCol[i]
+            reference = referenceCol[i]
             
-        if not math.isnan(expense):
-            if status != 'No':
-                totalExpense += expense
-            # expense = {
-            #     'date': date,
-            #     'amount': expense,
-            #     'description': description,
-            #     'ministry': ministry,
-            #     'team': team,
-            #     'status': status,
-            #     'reference': reference,
-            # }
-            db.session.add(
-                Expense(
-                    date=date,
-                    amount=expense,
-                    description=description,
-                    ministry=ministry,
-                    team=team,
-                    status=status,
-                    reference=reference,
-                ))
-            # db.session.commit()
-            # expenses.append(expense)
+            if not math.isnan(amount):
+                totalIncome += amount
+                if category == '주일헌금':
+                    total주일헌금 += amount
+                if category == '감사헌금':
+                    total감사헌금 += amount
+                if category == '십일조':
+                    total십일조 += amount
+                
+                if (name == '전년이기' and '2019' in db_string) or name != '전년이기':
+                    db.session.add( 
+                        Offering(
+                            date=date if not pd.isnull(date) else None,
+                            amount=amount,
+                            description=nan_value_to_empty_string(description),
+                            name=nan_value_to_empty_string(name),
+                            category=nan_value_to_empty_string(category),
+                            moneyType=nan_value_to_empty_string(moneyType), 
+                        ))
+
+            if not math.isnan(revenue):
+                totalIncome += revenue
+                db.session.add(
+                    Revenue(
+                        date=date if not pd.isnull(date) else None,
+                        amount=nan_value_to_empty_string(revenue),
+                        description=nan_value_to_empty_string(description),
+                        team=nan_value_to_empty_string(team),
+                        reference=nan_value_to_empty_string(reference),
+                    ))
+                
+            if not math.isnan(expense):
+                if status != 'No':
+                    totalExpense += expense
+                db.session.add(
+                    Expense(
+                        date=date if not pd.isnull(date) else None,
+                        amount=nan_value_to_empty_string(expense),
+                        description=nan_value_to_empty_string(description),
+                        team=nan_value_to_empty_string(team),
+                        status=nan_value_to_empty_string(status),
+                        reference=nan_value_to_empty_string(reference),
+                    ))
+                
     db.session.commit()
 
     print('노회 상회비: ${:,.2f}'.format((total주일헌금 + total감사헌금 + total십일조) * 0.015))
@@ -136,8 +112,3 @@ def get_2020_fins():
     print('total expense: ${:,.2f}'.format(totalExpense))
     print('available balance: ${:,.2f}'.format(totalIncome - totalExpense))
     
-    return {
-        'offerings': offerings,
-        'expenses': expenses,
-        'revenues': revenues,
-    }

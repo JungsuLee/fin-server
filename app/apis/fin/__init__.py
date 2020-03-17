@@ -9,11 +9,10 @@ api = Namespace('fin')
 @api.route('/fetch')
 class FetchFinDataApi(Resource):
     def get(self):
-        return controllers.get_2020_fins()
+        return controllers.fetch_fin_data()
 
 
 @api.route('/offerings')
 class OfferingsApi(Resource):
     def get(self):
         return controllers.get_offerings()
-        
