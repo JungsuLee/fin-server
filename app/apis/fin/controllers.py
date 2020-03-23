@@ -3,6 +3,9 @@ import math
 import pandas as pd
 from ...models import Offering, Revenue, Expense
 from ..helpers import to_json_res
+import datetime
+from sqlalchemy.sql import func
+from sqlalchemy import or_
 
 
 def get_offerings():
@@ -16,7 +19,78 @@ def nan_value_to_empty_string(value):
     return value if not pd.isnull(value) else ''
 
 
+def reset_db():
+    db.drop_all()
+    db.create_all()
+
+
+def get_fin_summary():
+    totalOffering = db.session.query(func.sum(Offering.amount)).scalar()
+    totalExpense = db.session.query(func.sum(Expense.amount)).scalar()
+    totalRevenue = db.session.query(func.sum(Revenue.amount)).scalar()
+
+    totalMissionaryOffering = db.session.query(func.sum(Offering.amount)).filter(
+        Offering.category == '선교헌금'
+    ).scalar()
+    totalMissionaryExpense = db.session.query(func.sum(Expense.amount)).filter(
+        Expense.team == '전도사역'
+    ).scalar()
+    
+    totalVehicleOffering = db.session.query(func.sum(Offering.amount)).filter(
+        Offering.category == '차량헌금'
+    ).scalar()
+
+    totalConstructionOffering = db.session.query(func.sum(Offering.amount)).filter(
+        Offering.category == '건축헌금'
+    ).scalar()
+    return {
+        'totalAmount': totalOffering - totalExpense + totalRevenue,
+        'totalMissionaryOffering': totalMissionaryOffering - totalMissionaryExpense,
+        'totalVehicleOffering': totalVehicleOffering,
+        'totalConstructionOffering': totalConstructionOffering,
+    }
+
+
+def get_finance_data(year):
+    start_date = datetime.datetime.strptime(
+        '01-01-' + year + ' 00:00:00', '%m-%d-%Y %H:%M:%S')
+    end_date = datetime.datetime.strptime(
+        '12-31-' + year + ' 23:59:59', '%m-%d-%Y %H:%M:%S')
+
+    totalGeneralOffering = 0
+    offerings = []
+    for offering in Offering.query.filter(
+        Offering.date >= start_date,
+        Offering.date <= end_date,
+    ):
+        offerings.append(offering.to_json2())
+        if (offering.category in ['주일헌금', '감사헌금', '십일조']):
+            totalGeneralOffering += offering.amount
+
+    expenses = []
+    for expense in Expense.query.filter(
+        Expense.date >= start_date,
+        Expense.date <= end_date,
+    ):
+        expenses.append(expense.to_json2())
+
+    revenues = []
+    for revenue in Revenue.query.filter(
+        Revenue.date >= start_date,
+        Revenue.date <= end_date,
+    ):
+        revenues.append(revenue.to_json2())
+
+    return {
+        'offerings': offerings,
+        'expenses': expenses,
+        'revenues': revenues,
+        'totalGeneralOffering': totalGeneralOffering,
+    }
+
+
 def fetch_fin_data():
+    reset_db()
     db_strings = [
         'C:\\Users\\ljs96\\Dropbox\\재정 Finances\\2019 DB.xlsx',
         'C:\\Users\\ljs96\\Dropbox\\재정 Finances\\2020 DB.xlsx',

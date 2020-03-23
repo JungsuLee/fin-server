@@ -30,6 +30,15 @@ class Revenue(db.Model):
     team = db.Column(db.String(15))
     reference = db.Column(db.String(15))
 
+    def to_json2(self):
+        return {
+            'date': str(self.date),
+            'amount': self.amount,
+            'description': self.description,
+            'team': self.team,
+            'reference': self.reference,
+        }
+
 
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,3 +49,13 @@ class Expense(db.Model):
     team = db.Column(db.String(15))
     status = db.Column(db.String(15))
     reference = db.Column(db.String(15))
+
+    def to_json2(self):
+        return {
+            'date': str(self.date),
+            'amount': self.amount,
+            'description': self.description,
+            'team': self.team,
+            'status': self.status,
+            'reference': self.reference,
+        }
