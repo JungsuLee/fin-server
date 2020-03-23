@@ -59,13 +59,24 @@ def get_finance_data(year):
 
     totalGeneralOffering = 0
     offerings = []
-    for offering in Offering.query.filter(
+    for offering in db.session.query(
+        Offering.date,
+        Offering.category,
+        func.sum(Offering.amount),
+    ).filter(
         Offering.date >= start_date,
         Offering.date <= end_date,
-    ):
-        offerings.append(offering.to_json2())
-        if (offering.category in ['주일헌금', '감사헌금', '십일조']):
-            totalGeneralOffering += offering.amount
+    ).group_by(
+        Offering.date, 
+        Offering.category
+    ).order_by(Offering.date).all():
+        offerings.append({
+            'date': offering[0].strftime('%m/%d'),
+            'category': offering[1],
+            'amount': offering[2],
+        })
+        if (offering[1] in ['주일헌금', '감사헌금', '십일조']):
+            totalGeneralOffering += offering[2]
 
     expenses = []
     for expense in Expense.query.filter(

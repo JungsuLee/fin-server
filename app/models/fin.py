@@ -12,7 +12,7 @@ class Offering(db.Model):
 
     def to_json2(self):
         return {
-            'date': str(self.date),
+            'date': self.date.strftime('%m/%d'),
             'amount': self.amount,
             'description': self.description,
             'name': self.name,
@@ -32,7 +32,7 @@ class Revenue(db.Model):
 
     def to_json2(self):
         return {
-            'date': str(self.date),
+            'date': self.date.strftime('%m/%d'),
             'amount': self.amount,
             'description': self.description,
             'team': self.team,
@@ -52,7 +52,7 @@ class Expense(db.Model):
 
     def to_json2(self):
         return {
-            'date': str(self.date),
+            'date': self.date.strftime('%m/%d'),
             'amount': self.amount,
             'description': self.description,
             'team': self.team,
