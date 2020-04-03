@@ -1,7 +1,7 @@
 from app import db
 from ...models import Finance
-import datetime
 from sqlalchemy.sql import func
+from ..helpers import get_start_end_dates
 
 
 def get_fin_summary():
@@ -52,11 +52,7 @@ def get_fin_summary():
 
 
 def get_finance_data(year):
-    start_date = datetime.datetime.strptime(
-        '01-01-' + year + ' 00:00:00', '%m-%d-%Y %H:%M:%S')
-    end_date = datetime.datetime.strptime(
-        '12-31-' + year + ' 23:59:59', '%m-%d-%Y %H:%M:%S')
-
+    start_date, end_date = get_start_end_dates(year)
     totalGeneralOffering = 0
     totalSpecialOffering = 0
     offerings = []
