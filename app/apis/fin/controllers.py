@@ -52,48 +52,53 @@ def get_fin_summary():
 
 
 def get_fin_summary_by_year(year):
+    defaultTotalOffering = db.session.query(
+        func.sum(Finance.amount)).filter(
+        Finance.type == 'offering',
+        Finance.description == '전년이기 일반헌금',
+        ).scalar() or 0
     totalOffering = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.type == 'offering',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
         ).scalar() or 0
     totalExpense = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.type == 'expense',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
         ).scalar() or 0
     totalRevenue = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.type == 'revenue',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
         ).scalar() or 0
 
     defaultMissionaryOffering = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.category == '선교헌금',
-        Finance.description == '전년이기 건축헌금',
+        Finance.description == '전년이기 선교헌금',
     ).scalar() or 0
     totalMissionaryOffering = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.category == '선교헌금',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
     ).scalar() or 0
     totalMissionaryExpense = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.category == '전도사역',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
     ).scalar() or 0
 
     totalVehicleOffering = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.category == '차량헌금',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
     ).scalar() or 0
     totalVehicleExpense = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.category == '차량 지정',
         Finance.type == 'expense',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
     ).scalar() or 0
     
     defaultConstructionOffering = db.session.query(
@@ -104,17 +109,17 @@ def get_fin_summary_by_year(year):
     totalConstructionOffering = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.category == '건축헌금',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
     ).scalar() or 0
     totalConstructionExpense = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.category == '건축사역',
         Finance.type == 'expense',
-        extract('year', Finance.date) <= year,
+        extract('year', Finance.date) < year,
     ).scalar() or 0
     
     return {
-        'totalAmount': totalOffering - totalExpense + totalRevenue,
+        'totalAmount': defaultTotalOffering + defaultMissionaryOffering + defaultConstructionOffering + totalOffering + totalRevenue - totalExpense,
         'totalMissionaryOffering': defaultMissionaryOffering + totalMissionaryOffering - totalMissionaryExpense,
         'totalVehicleOffering': totalVehicleOffering - totalVehicleExpense,
         'totalConstructionOffering': defaultConstructionOffering + totalConstructionOffering - totalConstructionExpense,
@@ -122,7 +127,6 @@ def get_fin_summary_by_year(year):
 
 
 def get_finance_data(year):
-    start_date, end_date = get_start_end_dates(year)
     totalGeneralOffering = 0
     totalSpecialOffering = 0
     offerings = []
@@ -131,8 +135,7 @@ def get_finance_data(year):
         Finance.category,
         func.sum(Finance.amount),
     ).filter(
-        Finance.date >= start_date,
-        Finance.date <= end_date,
+        extract('year', Finance.date) == year,
         Finance.type == 'offering'
     ).group_by(
         Finance.date, 
@@ -151,8 +154,7 @@ def get_finance_data(year):
     expenses = []
     totalExpense = 0
     for expense in Finance.query.filter(
-        Finance.date >= start_date,
-        Finance.date <= end_date,
+        extract('year', Finance.date) == year,
         Finance.type == 'expense',
     ):
         expenseJson = expense.to_json2()
@@ -162,8 +164,7 @@ def get_finance_data(year):
     revenues = []
     totalRevenue = 0
     for revenue in Finance.query.filter(
-        Finance.date >= start_date,
-        Finance.date <= end_date,
+        extract('year', Finance.date) == year,
         Finance.type == 'revenue',
     ):
         revenueJson = revenue.to_json2()
