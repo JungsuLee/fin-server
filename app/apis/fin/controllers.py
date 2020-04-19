@@ -1,10 +1,17 @@
 from app import db
 from ...models import Finance
-from sqlalchemy.sql import func, extract
+from sqlalchemy.sql import func, extract, distinct, desc
 from ..helpers import get_start_end_dates
 
 
 def get_fin_summary():
+    _years = db.session.query(
+        distinct(extract('year', Finance.date))).order_by(
+            desc(extract('year', Finance.date))).all()
+    years = []
+    for year in _years:
+        if year[0]:
+            years.append(str(year[0]).split('.')[0])
     totalOffering = db.session.query(
         func.sum(Finance.amount)).filter(
         Finance.type == 'offering'
@@ -44,6 +51,7 @@ def get_fin_summary():
         Finance.type == 'expense',
     ).scalar()
     return {
+        'years': years,
         'totalAmount': totalOffering - totalExpense + totalRevenue,
         'totalMissionaryOffering': totalMissionaryOffering - totalMissionaryExpense,
         'totalVehicleOffering': totalVehicleOffering - totalVehicleExpense,
